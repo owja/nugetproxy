@@ -1,0 +1,26 @@
+#!/bin/bash
+
+rm -rf /etc/nginx/sites-enabled
+rm -rf /etc/nuget.config
+
+service nginx stop
+
+protocol=$(parseurl $1 protocol)
+domain=$(parseurl $1 host)
+login=$(parseurl $1 login)
+path=$(parseurl $1 resource)
+
+server="${protocol}${domain}"
+auth=$(echo -ne "${login}" | base64)
+
+mkdir -p /etc/nginx/sites-enabled
+
+sed -e "s/%SERVER%/${server//\//\\/}/g" \
+	-e "s/%DOMAIN%/${domain//\//\\/}/g" \
+	-e "s/%AUTH%/${auth//\//\\/}/g" \
+	/etc/nugetproxy/nginx.config > /etc/nginx/sites-enabled/proxy
+	
+sed -e "s/%PATH%/${path//\//\\/}/g" \
+	/etc/nugetproxy/nuget.config > /etc/nuget.config
+
+service nginx start

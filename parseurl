@@ -1,0 +1,53 @@
+#!/bin/bash
+
+# extract the protocol
+proto="$(echo $1 | grep :// | sed -e's,^\(.*://\).*,\1,g')"
+
+if [[ ! -z $proto ]] ; then
+	# remove the protocol
+	url="$(echo ${1/$proto/})"
+
+	# extract the user (if any)
+	login="$(echo $url | grep @ | cut -d@ -f1)"
+
+	# extract the host
+	host="$(echo ${url/$login@/} | cut -d/ -f1)"
+
+	# by request - try to extract the port
+	port="$(echo $host | sed -e 's,^.*:,:,g' -e 's,.*:\([0-9]*\).*,\1,g' -e 's,[^0-9],,g')"
+
+	# extract the uri (if any)
+	resource="/$(echo $url | grep / | cut -d/ -f2-)"
+else
+	url=""
+	login=""
+	host=""
+	port=""
+	resource=$1
+fi
+
+# extract the path (if any)
+path1="$(echo $resource | grep ? | cut -d? -f1 )"
+path2="$(echo $resource | grep \# | cut -d# -f1 )"
+path=$path1
+if [[ -z $path ]] ; then path=$path2 ; fi
+if [[ -z $path ]] ; then path=$resource ; fi
+
+# extract the query (if any)
+query1="$(echo $resource | grep ? | cut -d? -f2-)"
+query2="$(echo $query1 | grep \# | cut -d\# -f1 )"
+query=$query2
+if [[ -z $query ]] ; then query=$query1 ; fi
+
+# extract the fragment (if any)
+fragment="$(echo $resource | grep \# | cut -d\# -f2 )"
+
+if [[ $2 == "url" ]] ; then echo -ne $url; fi
+if [[ $2 == "protocol" ]] ; then echo -ne $proto; fi
+if [[ $2 == "login" ]] ; then echo -ne $login; fi
+if [[ $2 == "host" ]] ; then echo -ne $host; fi
+if [[ $2 == "port" ]] ; then echo -ne $port; fi
+if [[ $2 == "resource" ]] ; then echo -ne $resource; fi
+if [[ $2 == "path" ]] ; then echo -ne $path; fi
+if [[ $2 == "query" ]] ; then echo -ne $query; fi
+if [[ $2 == "fragment" ]] ; then echo -ne $fragment; fi
