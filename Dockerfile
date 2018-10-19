@@ -1,7 +1,5 @@
 FROM microsoft/dotnet:2.1-sdk
 
-COPY 99fixbadproxy /etc/apt/apt.conf.d/
-
 RUN apt-get update \
 	&& apt-get -y install nginx \
 	&& rm -rf /var/lib/apt/lists/*
